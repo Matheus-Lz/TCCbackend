@@ -3,6 +3,7 @@ package com.pap.demo.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import java.util.List;
@@ -38,9 +39,7 @@ public class UserService {
 
     public Optional<User> getByCpf(final String cpf) { return repository.findByCpf(cpf); }
 
-    public List<User> list() { return repository.findAll(); }
-
-    public Page<User> listPage(final Integer page, final Integer size) {
-        return repository.findAll(PageRequest.of(page, size));
+    public Page<User> list(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 }

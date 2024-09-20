@@ -4,6 +4,7 @@ import com.pap.demo.model.User;
 import com.pap.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +39,7 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> list() { return service.list(); }
-
-    @GetMapping("/{page}/{size}")
-    public Page<User> listPage(@PathVariable Integer page,
-                               @PathVariable Integer size) {
-        return service.listPage(page, size);
+    public Page<User> list(Pageable pageable) {
+        return service.list(pageable);
     }
 }
