@@ -32,5 +32,5 @@ public class ServicosPet {
 
     @ManyToOne
     @JoinColumn(name = "petshop_id")
-    private Petshop petshop; // Relacionamento com o petshop
+    //private Petshop petshop; // Relacionamento com o petshop
 }
