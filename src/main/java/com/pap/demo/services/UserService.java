@@ -1,45 +1,69 @@
 package com.pap.demo.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import java.util.List;
-import java.util.Optional;
+import com.pap.demo.DTOs.UserRequestDTO;
+import com.pap.demo.DTOs.UserResponseDTO;
 import com.pap.demo.model.User;
 import com.pap.demo.repositories.UserRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
-@Transactional
 public class UserService {
 
     @Autowired
-    public UserService(final UserRepository repository) {
-        this.repository = repository;
+    private UserRepository userRepository;
+
+    // Método para criar usuário
+    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
+        // Convertendo DTO de request para entidade User
+        User user = new User();
+        user.setName(userRequestDTO.getName());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setCpf(userRequestDTO.getCpf());
+        user.setPassword(userRequestDTO.getPassword());
+
+        // Salvando o usuário no banco de dados
+        User savedUser = userRepository.save(user);
+
+        // Convertendo entidade User para DTO de response
+        return toResponseDTO(savedUser);
     }
 
-    private final UserRepository repository;
-
-    public User create(final User user) {
-        Assert.isTrue(this.getByCpf(user.getCpf()).isEmpty(), "Já existe um usuário com este CPF cadastrado");
-        final User newUser = repository.save(user);
-        return newUser;
+    // Método para atualizar usuário
+    public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setName(userRequestDTO.getName());
+            user.setEmail(userRequestDTO.getEmail());
+            user.setCpf(userRequestDTO.getCpf());
+            user.setPassword(userRequestDTO.getPassword());
+            User updatedUser = userRepository.save(user);
+            return toResponseDTO(updatedUser);
+        } else {
+            return null;
+        }
     }
 
-    public User update(User user){
-        Assert.notNull(user.getIdUser(), "Id deve ser informado");
-        Assert.isTrue(this.getById(user.getIdUser()).isPresent(),"Usuário não identificado");
-        return repository.save(user);
+    // Método para obter usuário por ID
+    public UserResponseDTO getUserById(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            return toResponseDTO(userOptional.get());
+        } else {
+            return null;
+        }
     }
 
-    public Optional<User> getById(final Long id) { return repository.findById(id);}
-
-    public Optional<User> getByCpf(final String cpf) { return repository.findByCpf(cpf); }
-
-    public Page<User> list(Pageable pageable) {
-        return repository.findAll(pageable);
+    // Método auxiliar para converter User para UserResponseDTO
+    private UserResponseDTO toResponseDTO(User user) {
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setIdUser(user.getIdUser());
+        userResponseDTO.setName(user.getName());
+        userResponseDTO.setEmail(user.getEmail());
+        userResponseDTO.setCpf(user.getCpf());
+        return userResponseDTO;
     }
 }
