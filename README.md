@@ -45,5 +45,8 @@ Implementação de medidas de segurança como autenticação via JWT, criptograf
 ## Plano de Trabalho
 [Plano de trabalho Jira](https://matheusprivadopb.atlassian.net/jira/core/projects/PAP/board)
 
+## Mockup
+[Mockup do projeto](https://www.figma.com/design/UaCUi6AmXVXXV23duLL9hi/Mockup---Petshops?node-id=3-3&node-type=canvas)
+
 ## Autores
 - Matheus Luiz da Silva
