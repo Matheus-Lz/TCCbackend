@@ -1,45 +1,48 @@
 package com.pap.demo.controllers;
 
-import com.pap.demo.model.User;
+import com.pap.demo.DTOs.UserRequestDTO;
+import com.pap.demo.DTOs.UserResponseDTO;
 import com.pap.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import javax.validation.Valid;
 
 @RestController
-@RequestMapping ("/user")
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
-    public UserController(final UserService service) {
-        this.service = service;
-    }
+    private UserService userService;
 
-    private final UserService service;
-
+    // Endpoint para criar um novo usuário
     @PostMapping
-    public ResponseEntity<Object> create(@RequestBody User users) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(users));
+    public ResponseEntity<UserResponseDTO> create(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+        UserResponseDTO createdUser = userService.createUser(userRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    @PutMapping
-    public ResponseEntity<Object> update(@RequestBody User users) {
-        return ResponseEntity.ok(service.update(users));
+    // Endpoint para atualizar um usuário existente
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> update(@PathVariable Long id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+        UserResponseDTO updatedUser = userService.updateUser(id, userRequestDTO);
+        if (updatedUser != null) {
+            return ResponseEntity.ok(updatedUser);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
-    @GetMapping("/{cpf}")
-    public ResponseEntity<Optional<User>> getByCpf(@PathVariable String cpf){
-        return ResponseEntity.ok(service.getByCpf(cpf));
-    }
-
-    @GetMapping
-    public Page<User> list(Pageable pageable) {
-        return service.list(pageable);
+    // Endpoint para obter um usuário pelo ID
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
+        UserResponseDTO userResponseDTO = userService.getUserById(id);
+        if (userResponseDTO != null) {
+            return ResponseEntity.ok(userResponseDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }
