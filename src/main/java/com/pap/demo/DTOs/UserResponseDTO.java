@@ -9,4 +9,5 @@ public class UserResponseDTO {
     private String name;
     private String email;
     private String cpf;
+    private String token; // Incluído apenas no login (sign in)
 }

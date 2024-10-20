@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
@@ -19,6 +20,7 @@ public class UserRequestDTO {
 
     @NotBlank(message = "O CPF é obrigatório.")
     @Size(min = 11, max = 11, message = "O CPF deve conter 11 caracteres.")
+    @Pattern(regexp = "\\d{11}", message = "O CPF deve conter apenas números.")
     private String cpf;
 
     @NotBlank(message = "A senha é obrigatória.")

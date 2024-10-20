@@ -2,12 +2,14 @@ package com.pap.demo.services;
 
 import com.pap.demo.model.User;
 import com.pap.demo.repositories.UserRepository;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Primary
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -24,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                .authorities("USER")  // Defina o papel do usuário (pode ser mais complexo se você tiver roles)
+                .authorities(user.getAuthorities())  // Inclui as authorities do usuário
                 .build();
     }
 }
