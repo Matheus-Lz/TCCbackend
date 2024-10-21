@@ -15,7 +15,7 @@ O aumento no número de pets e a demanda por serviços especializados geram a ne
 
 ## Tecnologias Utilizadas
 - Backend: Java com Spring Boot
-- Frontend: TypeScript com Angular
+- Frontend: Javascript com React
 - Banco de Dados: PostgreSQL
 - Ferramentas de Desenvolvimento: Jira, JUnit
 
