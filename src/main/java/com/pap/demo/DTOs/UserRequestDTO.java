@@ -18,12 +18,18 @@ public class UserRequestDTO {
     @NotBlank(message = "O email é obrigatório.")
     private String email;
 
-    @NotBlank(message = "O CPF é obrigatório.")
+    // CPF agora é opcional, porque se o usuário tiver CNPJ, não precisa do CPF.
     @Size(min = 11, max = 11, message = "O CPF deve conter 11 caracteres.")
     @Pattern(regexp = "\\d{11}", message = "O CPF deve conter apenas números.")
     private String cpf;
+
+    // Novo campo CNPJ, também opcional.
+    @Size(min = 14, max = 14, message = "O CNPJ deve conter 14 caracteres.")
+    @Pattern(regexp = "\\d{14}", message = "O CNPJ deve conter apenas números.")
+    private String cnpj;
 
     @NotBlank(message = "A senha é obrigatória.")
     @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres.")
     private String password;
 }
+

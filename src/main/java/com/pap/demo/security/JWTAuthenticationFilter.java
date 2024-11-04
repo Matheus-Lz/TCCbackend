@@ -10,10 +10,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
@@ -28,48 +33,59 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // Pegar o token do header Authorization
         final String authorizationHeader = request.getHeader("Authorization");
         String username = null;
         String jwt = null;
 
-        // Verifica se o header contém o token JWT
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
-                username = jwtUtil.extractUsername(jwt);  // Extrai o nome de usuário (email) do token
+                username = jwtUtil.extractUsername(jwt);
+                System.out.println("Token JWT extraído com sucesso.");
+                System.out.println("Usuário extraído do token: " + username);
             } catch (Exception e) {
-                // Adicione logs para capturar problemas na extração do token
                 System.out.println("Erro ao extrair o token: " + e.getMessage());
             }
-
-            // Logs para acompanhar o processamento do token
-            System.out.println("Token JWT extraído: " + jwt);
-            System.out.println("Usuário extraído do token: " + username);
+        } else {
+            System.out.println("Header Authorization não encontrado ou formato incorreto.");
         }
 
-        // Verifica se o token foi extraído e se o contexto de segurança não possui autenticação
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            System.out.println("Iniciando autenticação para o usuário: " + username);
             UserDetails userDetails = userService.loadUserByUsername(username);
 
-            // Valida o token JWT
             if (jwtUtil.validateToken(jwt, userDetails)) {
-                // Cria o objeto de autenticação baseado nas informações do token
+                System.out.println("Token JWT validado com sucesso para o usuário: " + username);
+
+                // Verifica se existem roles no token e configura as authorities
+                List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                List<String> rolesFromToken = jwtUtil.extractRoles(jwt);
+                if (rolesFromToken != null) {
+                    System.out.println("Roles extraídas do token: " + rolesFromToken); // Log para verificação
+
+                    authorities = rolesFromToken.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+                }
+
+                System.out.println("Authorities configuradas: " + authorities); // Log para verificação
+
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+                        userDetails, null, authorities);
 
-                // Detalhes da requisição são adicionados ao token de autenticação
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Autentica o usuário
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             } else {
-                // Adicione logs caso a validação do token falhe
-                System.out.println("Token JWT inválido ou expirado");
+                System.out.println("Token JWT inválido ou expirado para o usuário: " + username);
+            }
+        } else {
+            if (username == null) {
+                System.out.println("Nenhum usuário foi extraído do token.");
+            } else {
+                System.out.println("Contexto de segurança já possui uma autenticação para: " + username);
             }
         }
 
-        // Continua o filtro
         chain.doFilter(request, response);
     }
 }

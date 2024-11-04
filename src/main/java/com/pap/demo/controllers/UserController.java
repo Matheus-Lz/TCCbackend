@@ -7,6 +7,7 @@ import com.pap.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -85,4 +86,12 @@ public class UserController {
     public ResponseEntity<String> getProtectedResource() {
         return ResponseEntity.ok("Acesso permitido. Você está autenticado!");
     }
+
+    // Novo endpoint para obter o perfil do usuário - acessível apenas por ROLE_USER
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<String> getUserProfile() {
+        return ResponseEntity.ok("Acesso permitido ao perfil do usuário!");
+    }
+
 }

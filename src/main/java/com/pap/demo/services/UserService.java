@@ -2,9 +2,14 @@ package com.pap.demo.services;
 
 import com.pap.demo.DTOs.UserRequestDTO;
 import com.pap.demo.DTOs.UserResponseDTO;
+import com.pap.demo.model.ERole;
+import com.pap.demo.model.Role;
 import com.pap.demo.model.User;
+import com.pap.demo.repositories.RoleRepository;
 import com.pap.demo.repositories.UserRepository;
 import com.pap.demo.security.JWTUtil;
+import java.util.Set;
+import java.util.HashSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,11 +31,17 @@ public class UserService {
     @Autowired
     private JWTUtil jwtUtil;
 
+    @Autowired
+    private RoleRepository roleRepository; // Adicionar o repositório de roles
+
     // Método para criar um novo usuário (registro)
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         // Verificar se o email já está cadastrado
         if (userRepository.findByEmail(userRequestDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Email já cadastrado: " + userRequestDTO.getEmail());
+        }
+        if (userRequestDTO.getCpf() == null && userRequestDTO.getCnpj() == null) {
+            throw new RuntimeException("Erro: CPF ou CNPJ devem ser fornecidos.");
         }
 
         // Convertendo DTO de request para entidade User
@@ -38,28 +49,43 @@ public class UserService {
         user.setName(userRequestDTO.getName());
         user.setEmail(userRequestDTO.getEmail());
         user.setCpf(userRequestDTO.getCpf());
-        // Criptografar a senha antes de salvar no banco de dados
+        user.setCnpj(userRequestDTO.getCnpj());
         user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
 
-        // Salvando o usuário no banco de dados
+        // Definir a role com base em CPF ou CNPJ
+        Set<Role> roles = new HashSet<>();
+        if (userRequestDTO.getCpf() != null) {
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Erro: Role USER não encontrada."));
+            roles.add(userRole);
+        } else if (userRequestDTO.getCnpj() != null) {
+            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                    .orElseThrow(() -> new RuntimeException("Erro: Role ADMIN não encontrada."));
+            roles.add(adminRole);
+        }
+
+        user.setRoles(roles);
+
+        // Salvar o usuário no banco de dados
         User savedUser = userRepository.save(user);
 
-        // Retornando o usuário criado sem gerar o token no cadastro
-        return toResponseDTO(savedUser, null); // O token não é gerado no SignUp
+        // Retornar o usuário criado sem gerar o token no cadastro
+        return toResponseDTO(savedUser, null);
     }
+
     // Método para autenticar usuário (login)
     public String authenticateUser(UserRequestDTO userRequestDTO) {
-        // Procurar o usuário no banco pelo email
         Optional<User> userOptional = userRepository.findByEmail(userRequestDTO.getEmail());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
 
-            // Verificar se a senha fornecida corresponde à senha criptografada no banco
             if (passwordEncoder.matches(userRequestDTO.getPassword(), user.getPassword())) {
-                // Gerar token JWT se as credenciais estiverem corretas
-                UserDetails userDetails = loadUserByUsername(user.getEmail()); // Aqui você carrega o UserDetails
+                UserDetails userDetails = loadUserByUsername(user.getEmail());
 
-                return jwtUtil.generateToken(userDetails);  // Agora passando o objeto UserDetails corretamente
+                // Log para verificar as roles carregadas antes de gerar o token
+                System.out.println("Roles carregadas para autenticação: " + userDetails.getAuthorities());
+
+                return jwtUtil.generateToken(userDetails);
             } else {
                 throw new BadCredentialsException("Senha incorreta");
             }
@@ -67,7 +93,6 @@ public class UserService {
             throw new UsernameNotFoundException("Usuário não encontrado com o email: " + userRequestDTO.getEmail());
         }
     }
-
 
     // Método para carregar usuário pelo email (necessário para o filtro JWT)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -77,7 +102,7 @@ public class UserService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .roles("USER") // Define o papel do usuário
+                .authorities(user.getAuthorities())
                 .build();
     }
 
@@ -89,11 +114,11 @@ public class UserService {
         user.setName(userRequestDTO.getName());
         user.setEmail(userRequestDTO.getEmail());
         user.setCpf(userRequestDTO.getCpf());
-        // Criptografar a senha ao atualizar
+        user.setCnpj(userRequestDTO.getCnpj());
         user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         User updatedUser = userRepository.save(user);
 
-        return toResponseDTO(updatedUser, null); // Não há necessidade de token na atualização
+        return toResponseDTO(updatedUser, null);
     }
 
     // Método para obter um usuário pelo ID
@@ -101,7 +126,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o id: " + id));
 
-        return toResponseDTO(user, null); // Não há necessidade de token na consulta
+        return toResponseDTO(user, null);
     }
 
     // Método auxiliar para converter User para UserResponseDTO
@@ -111,7 +136,9 @@ public class UserService {
         userResponseDTO.setName(user.getName());
         userResponseDTO.setEmail(user.getEmail());
         userResponseDTO.setCpf(user.getCpf());
-        userResponseDTO.setToken(token); // Incluindo o token no DTO de resposta, se houver
+        userResponseDTO.setCnpj(user.getCnpj());
+        userResponseDTO.setToken(token);
         return userResponseDTO;
     }
 }
+

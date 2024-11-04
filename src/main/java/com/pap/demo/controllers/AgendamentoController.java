@@ -5,6 +5,7 @@ import com.pap.demo.DTOs.AgendamentoResponseDTO;
 import com.pap.demo.services.AgendamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import java.security.Principal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +26,16 @@ public class AgendamentoController {
 
     // Endpoint para criar um agendamento
     @PostMapping
-    public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(@RequestBody AgendamentoRequestDTO agendamentoRequestDTO) {
+    public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(
+            @RequestBody AgendamentoRequestDTO agendamentoRequestDTO,
+            Principal principal) {
+
+        // Extrai o nome do usuário autenticado
+        String username = principal.getName();
+        agendamentoRequestDTO.setUsername(username);
+
         AgendamentoResponseDTO novoAgendamento = agendamentoService.criarAgendamento(agendamentoRequestDTO);
         return ResponseEntity.ok(novoAgendamento);
     }
 }
+

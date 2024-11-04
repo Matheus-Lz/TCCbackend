@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Builder
 @Entity
 @Table(name = "users")
-public class User implements UserDetails { // Implementa UserDetails
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -29,50 +29,57 @@ public class User implements UserDetails { // Implementa UserDetails
     private String name;
     private String email;
     private String password;
-    private String cpf;
+    private String cpf; // Define o campo para ROLE_USER
+    private String cnpj; // Define o campo para ROLE_ADMIN
 
     // Relacionamento Many-to-Many com Role
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>(); // Um usuário pode ter vários papéis (roles)
+    private Set<Role> roles = new HashSet<>();
 
     // Implementação dos métodos da interface UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Log para verificação das roles associadas ao usuário
+        System.out.println("Authorities para o usuário " + this.email + ": " + roles);
+
+        // Retorna as roles convertidas para GrantedAuthority
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName().name())) // Converte cada Role em SimpleGrantedAuthority
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
     }
 
     @Override
     public String getPassword() {
-        return this.password; // O campo password da sua model
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return this.email; // O Spring Security utiliza o campo 'username', aqui estamos usando o email como username
+        return this.email;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // Modifique conforme sua lógica, se desejar
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // Modifique conforme sua lógica, se desejar
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Modifique conforme sua lógica, se desejar
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // Modifique conforme sua lógica, se desejar
+        return true;
     }
 }
+
+

@@ -9,5 +9,7 @@ public class UserResponseDTO {
     private String name;
     private String email;
     private String cpf;
+    private String cnpj; // Incluído para retornar o CNPJ se for um usuário administrador
     private String token; // Incluído apenas no login (sign in)
 }
+

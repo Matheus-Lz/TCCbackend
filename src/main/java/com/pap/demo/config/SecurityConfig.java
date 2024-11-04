@@ -14,9 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
@@ -29,12 +32,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JWTAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())  // Desabilita CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/user/register", "/user/login").permitAll()  // Permite acesso público a essas rotas
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // Apenas usuários com o papel ADMIN podem acessar /admin/**
-                        .anyRequest().authenticated()  // Qualquer outra rota requer autenticação
+                        .requestMatchers("/user/register", "/user/login").permitAll()  // Acesso público para registro e login
+                        .requestMatchers("/admin/**").hasRole("ADMIN")  // Apenas ADMIN pode acessar /admin/**
+                        .requestMatchers("/user/profile").hasRole("USER")  // Protege o perfil para ROLE_USER apenas
+                        .requestMatchers("/api/agendamentos/**").hasAnyRole("USER", "ADMIN")  // USER e ADMIN podem acessar agendamentos
+                        .anyRequest().authenticated()  // Outras rotas precisam de autenticação
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Define como stateless
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // Adiciona o filtro JWT antes do UsernamePasswordAuthenticationFilter
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Sessão stateless
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // Adiciona o filtro JWT
         return http.build();
     }
 

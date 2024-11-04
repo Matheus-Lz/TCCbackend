@@ -11,4 +11,5 @@ public class AgendamentoRequestDTO {
     private LocalDateTime dataFim;
     private Long idServico;
     private Long idUsuario;
+    private String username;
 }
