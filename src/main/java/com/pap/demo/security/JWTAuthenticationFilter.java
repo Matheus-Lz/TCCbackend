@@ -33,6 +33,15 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Ignorar o filtro JWT para a rota pública /servicos/**
+        String requestURI = request.getRequestURI();
+        System.out.println("Processando requisição para URI: " + requestURI);
+        if (requestURI.startsWith("/servicos")) {
+            System.out.println("Rota pública detectada, ignorando o filtro JWT para: " + requestURI);
+            chain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
         String username = null;
         String jwt = null;
@@ -57,18 +66,17 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(jwt, userDetails)) {
                 System.out.println("Token JWT validado com sucesso para o usuário: " + username);
 
-                // Verifica se existem roles no token e configura as authorities
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 List<String> rolesFromToken = jwtUtil.extractRoles(jwt);
                 if (rolesFromToken != null) {
-                    System.out.println("Roles extraídas do token: " + rolesFromToken); // Log para verificação
+                    System.out.println("Roles extraídas do token: " + rolesFromToken);
 
                     authorities = rolesFromToken.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
                 }
 
-                System.out.println("Authorities configuradas: " + authorities); // Log para verificação
+                System.out.println("Authorities configuradas: " + authorities);
 
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, authorities);

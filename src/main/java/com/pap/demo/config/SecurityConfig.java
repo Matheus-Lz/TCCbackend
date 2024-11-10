@@ -4,6 +4,7 @@ import com.pap.demo.security.JWTAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,11 +33,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JWTAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http.csrf(csrf -> csrf.disable())  // Desabilita CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/user/register", "/user/login").permitAll()  // Acesso público para registro e login
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // Apenas ADMIN pode acessar /admin/**
-                        .requestMatchers("/user/profile").hasRole("USER")  // Protege o perfil para ROLE_USER apenas
-                        .requestMatchers("/api/agendamentos/**").hasAnyRole("USER", "ADMIN")  // USER e ADMIN podem acessar agendamentos
-                        .anyRequest().authenticated()  // Outras rotas precisam de autenticação
+                        .requestMatchers("/user/register", "/user/login", "/servicos/**").permitAll()  // Permite acesso a todas as rotas /services
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/profile").hasRole("USER")
+                        .requestMatchers("/api/agendamentos/**").hasAnyRole("USER", "ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Sessão stateless
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // Adiciona o filtro JWT

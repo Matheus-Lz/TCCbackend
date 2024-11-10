@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/servicos")
@@ -45,4 +46,29 @@ public class ServicosPetController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    // Novo endpoint para listar todos os serviços
+    @GetMapping
+    public ResponseEntity<List<ServicoResponseDTO>> getAllServicos() {
+        List<ServicoResponseDTO> servicos = servicosPetService.getAllServicos();
+        return ResponseEntity.ok(servicos);
+    }
+
+    // Endpoint para excluir um serviço pelo ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        boolean isDeleted = servicosPetService.deleteServico(id);
+        if (isDeleted) {
+            return ResponseEntity.noContent().build(); // Retorna 204 No Content se o serviço foi excluído com sucesso
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // Retorna 404 Not Found se o ID não existir
+        }
+    }
+
+    /*@DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@RequestParam Long id) {
+        servicosPetService.deleteServico(id);
+        return new ResponseEntity <>(HttpStatus.OK);
+    }*/
+
 }
