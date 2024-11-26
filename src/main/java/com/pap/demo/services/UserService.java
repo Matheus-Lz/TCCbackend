@@ -2,14 +2,9 @@ package com.pap.demo.services;
 
 import com.pap.demo.DTOs.UserRequestDTO;
 import com.pap.demo.DTOs.UserResponseDTO;
-import com.pap.demo.model.ERole;
-import com.pap.demo.model.Role;
 import com.pap.demo.model.User;
-import com.pap.demo.repositories.RoleRepository;
 import com.pap.demo.repositories.UserRepository;
 import com.pap.demo.security.JWTUtil;
-import java.util.Set;
-import java.util.HashSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,9 +26,6 @@ public class UserService {
     @Autowired
     private JWTUtil jwtUtil;
 
-    @Autowired
-    private RoleRepository roleRepository; // Adicionar o repositório de roles
-
     // Método para criar um novo usuário (registro)
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         // Verificar se o email já está cadastrado
@@ -52,20 +44,6 @@ public class UserService {
         user.setCnpj(userRequestDTO.getCnpj());
         user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
 
-        // Definir a role com base em CPF ou CNPJ
-        Set<Role> roles = new HashSet<>();
-        if (userRequestDTO.getCpf() != null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Erro: Role USER não encontrada."));
-            roles.add(userRole);
-        } else if (userRequestDTO.getCnpj() != null) {
-            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                    .orElseThrow(() -> new RuntimeException("Erro: Role ADMIN não encontrada."));
-            roles.add(adminRole);
-        }
-
-        user.setRoles(roles);
-
         // Salvar o usuário no banco de dados
         User savedUser = userRepository.save(user);
 
@@ -81,10 +59,6 @@ public class UserService {
 
             if (passwordEncoder.matches(userRequestDTO.getPassword(), user.getPassword())) {
                 UserDetails userDetails = loadUserByUsername(user.getEmail());
-
-                // Log para verificar as roles carregadas antes de gerar o token
-                System.out.println("Roles carregadas para autenticação: " + userDetails.getAuthorities());
-
                 return jwtUtil.generateToken(userDetails);
             } else {
                 throw new BadCredentialsException("Senha incorreta");
@@ -102,7 +76,7 @@ public class UserService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .authorities(user.getAuthorities())
+                .roles() // Não há mais roles associadas
                 .build();
     }
 
@@ -141,4 +115,3 @@ public class UserService {
         return userResponseDTO;
     }
 }
-

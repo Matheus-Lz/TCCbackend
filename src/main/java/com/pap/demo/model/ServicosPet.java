@@ -30,7 +30,4 @@ public class ServicosPet {
     @Column(nullable = false)
     private int timeInMinutes; // Para indicar a duração do serviço
 
-    //@ManyToOne
-    //@JoinColumn(name = "petshop_id")
-    //private Petshop petshop; // Relacionamento com o petshop
 }
