@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,25 @@ public class AgendamentoService {
      */
     public List<AgendamentoResponseDTO> listarAgendamentos() {
         List<Agendamento> agendamentos = agendamentoRepository.findAll();
+        return agendamentos.stream()
+                .map(agendamento -> modelMapper.map(agendamento, AgendamentoResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lista os agendamentos por data.
+     */
+    public List<AgendamentoResponseDTO> listarAgendamentosPorData(String date) {
+        LocalDate dataFiltro = LocalDate.parse(date);
+        LocalDateTime inicioDoDia = dataFiltro.atStartOfDay();
+        LocalDateTime fimDoDia = dataFiltro.atTime(23, 59, 59);
+
+        List<Agendamento> agendamentos = agendamentoRepository.findByDataInicioBetween(inicioDoDia, fimDoDia);
+
+        if (agendamentos.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum agendamento encontrado para a data especificada.");
+        }
+
         return agendamentos.stream()
                 .map(agendamento -> modelMapper.map(agendamento, AgendamentoResponseDTO.class))
                 .collect(Collectors.toList());

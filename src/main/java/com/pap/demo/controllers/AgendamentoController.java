@@ -18,11 +18,22 @@ public class AgendamentoController {
     private AgendamentoService agendamentoService;
 
     /**
-     * Endpoint para listar todos os agendamentos.
+     * Endpoint para listar agendamentos.
+     * Retorna todos os agendamentos ou apenas os agendamentos de uma data específica, se fornecida.
      */
     @GetMapping
-    public ResponseEntity<List<AgendamentoResponseDTO>> listarAgendamentos() {
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarAgendamentos();
+    public ResponseEntity<List<AgendamentoResponseDTO>> listarAgendamentos(
+            @RequestParam(value = "date", required = false) String date) {
+        List<AgendamentoResponseDTO> agendamentos;
+
+        if (date != null && !date.isEmpty()) {
+            // Caso uma data seja fornecida
+            agendamentos = agendamentoService.listarAgendamentosPorData(date);
+        } else {
+            // Caso nenhuma data seja fornecida
+            agendamentos = agendamentoService.listarAgendamentos();
+        }
+
         return ResponseEntity.ok(agendamentos);
     }
 
