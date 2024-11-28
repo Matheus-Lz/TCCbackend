@@ -91,7 +91,17 @@ public class AgendamentoService {
         // Retornar o DTO da resposta
         return modelMapper.map(novoAgendamento, AgendamentoResponseDTO.class);
     }
+    /**
+     * Deleta um agendamento pelo ID.
+     */
+    public void deletarAgendamento(Long idAgendamento) {
+        // Buscar o agendamento pelo ID
+        Agendamento agendamento = agendamentoRepository.findById(idAgendamento)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
+        // Deletar o agendamento
+        agendamentoRepository.delete(agendamento);
+    }
     /**
      * Lista os agendamentos vinculados ao email do usuário.
      */

@@ -62,4 +62,14 @@ public class AgendamentoController {
         List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarAgendamentosPorEmail(emailUsuarioAutenticado);
         return ResponseEntity.ok(agendamentos);
     }
+
+    /**
+     * Endpoint para deletar um agendamento pelo ID.
+     */
+    @DeleteMapping("/{idAgendamento}")
+    public ResponseEntity<Void> deletarAgendamento(@PathVariable Long idAgendamento) {
+        // Chama o serviço para deletar o agendamento
+        agendamentoService.deletarAgendamento(idAgendamento);
+        return ResponseEntity.noContent().build(); // Retorna 204 No Content
+    }
 }

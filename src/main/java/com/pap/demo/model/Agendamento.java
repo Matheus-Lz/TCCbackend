@@ -41,6 +41,11 @@ public class Agendamento {
     @JoinColumn(name = "id_servico_pet", nullable = false)
     private ServicosPet servico;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name", nullable = true)
+    private ServicosPet nameServico;
+
     @NotNull(message = "O usuário associado ao agendamento é obrigatório.")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)
